@@ -18,6 +18,14 @@ export default {
 			}
 		},
 		extend: {
+			backgroundImage: {
+				'gradient-legal': 'var(--gradient-legal)',
+				'gradient-card': 'var(--gradient-card)',
+			},
+			boxShadow: {
+				'legal': 'var(--shadow-legal)',
+				'card': 'var(--shadow-card)',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -43,6 +51,10 @@ export default {
 				accent: {
 					DEFAULT: 'hsl(var(--accent))',
 					foreground: 'hsl(var(--accent-foreground))'
+				},
+				'legal-gold': {
+					DEFAULT: 'hsl(var(--legal-gold))',
+					foreground: 'hsl(var(--legal-gold-foreground))'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
