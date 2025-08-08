@@ -14,7 +14,216 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      case_participants: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_participants_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cases: {
+        Row: {
+          assigned_judge: string | null
+          assigned_lawyer: string | null
+          case_number: string
+          court_name: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          next_hearing_date: string | null
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_judge?: string | null
+          assigned_lawyer?: string | null
+          case_number: string
+          court_name?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          next_hearing_date?: string | null
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_judge?: string | null
+          assigned_lawyer?: string | null
+          case_number?: string
+          court_name?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          next_hearing_date?: string | null
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      communications: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          is_private: boolean | null
+          message: string
+          message_type: string | null
+          sender_id: string
+          subject: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          is_private?: boolean | null
+          message: string
+          message_type?: string | null
+          sender_id: string
+          subject: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          is_private?: boolean | null
+          message?: string
+          message_type?: string | null
+          sender_id?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communications_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hearings: {
+        Row: {
+          case_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          location: string | null
+          scheduled_date: string
+          status: string | null
+          title: string
+          updated_at: string
+          virtual_meeting_url: string | null
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          location?: string | null
+          scheduled_date: string
+          status?: string | null
+          title: string
+          updated_at?: string
+          virtual_meeting_url?: string | null
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          location?: string | null
+          scheduled_date?: string
+          status?: string | null
+          title?: string
+          updated_at?: string
+          virtual_meeting_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hearings_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          role: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
