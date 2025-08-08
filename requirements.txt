@@ -1,5 +1,3 @@
-Vite
-TypeScript
-React
-shadcn-ui
-Tailwind CSS
+flask
+gunicorn
+requests
