@@ -1,37 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { FingerprintInput } from "@/components/ui/fingerprint-input";
-import { Scale, Gavel, LogIn } from "lucide-react";
+import { Scale, LogIn } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
-  const [userType, setUserType] = useState<"lawyer" | "judge">("lawyer");
   const [fingerprintVerified, setFingerprintVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    enrollmentNumber: "",
-    courtId: "",
+    email: "",
     password: "",
   });
   
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user) {
+      // Check user profile to determine role and redirect accordingly
+      setTimeout(() => {
+        fetchUserProfile();
+      }, 0);
+    }
+  }, [user, navigate]);
+
+  const fetchUserProfile = async () => {
+    // For now, default to lawyer dashboard - this will be enhanced with role checking
+    navigate("/lawyer-dashboard");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fingerprintVerified) {
       alert("Please verify your fingerprint first");
       return;
     }
     
-    // Simulate login
-    if (userType === "lawyer") {
-      navigate("/lawyer-dashboard");
-    } else {
-      navigate("/judge-dashboard");
+    setLoading(true);
+    const { error } = await signIn(formData.email, formData.password);
+    
+    if (!error) {
+      // Navigation will happen automatically via useEffect
     }
+    
+    setLoading(false);
   };
 
   return (
@@ -47,51 +63,19 @@ export default function Login() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <RadioGroup
-            value={userType}
-            onValueChange={(value) => setUserType(value as "lawyer" | "judge")}
-            className="grid grid-cols-2 gap-4"
-          >
-            <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-secondary/50 transition-colors">
-              <RadioGroupItem value="lawyer" id="lawyer" />
-              <Label htmlFor="lawyer" className="flex items-center space-x-2 cursor-pointer">
-                <Scale className="h-4 w-4" />
-                <span>Lawyer</span>
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-secondary/50 transition-colors">
-              <RadioGroupItem value="judge" id="judge" />
-              <Label htmlFor="judge" className="flex items-center space-x-2 cursor-pointer">
-                <Gavel className="h-4 w-4" />
-                <span>Judge</span>
-              </Label>
-            </div>
-          </RadioGroup>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {userType === "lawyer" ? (
-              <div className="space-y-2">
-                <Label htmlFor="enrollment">Enrollment Number</Label>
-                <Input
-                  id="enrollment"
-                  value={formData.enrollmentNumber}
-                  onChange={(e) => setFormData({ ...formData, enrollmentNumber: e.target.value })}
-                  placeholder="Enter your enrollment number"
-                  required
-                />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label htmlFor="courtId">Court ID</Label>
-                <Input
-                  id="courtId"
-                  value={formData.courtId}
-                  onChange={(e) => setFormData({ ...formData, courtId: e.target.value })}
-                  placeholder="Enter your court ID"
-                  required
-                />
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -115,10 +99,10 @@ export default function Login() {
             <Button 
               type="submit" 
               className="w-full bg-gradient-legal"
-              disabled={!fingerprintVerified}
+              disabled={!fingerprintVerified || loading}
             >
               <LogIn className="mr-2 h-4 w-4" />
-              Sign In
+              {loading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
 
