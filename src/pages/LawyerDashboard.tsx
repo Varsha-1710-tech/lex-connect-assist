@@ -1,38 +1,134 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Search, Video, Calendar, FileText, Users } from "lucide-react";
+import { Scale, Search, Video, Calendar, FileText, Users, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function LawyerDashboard() {
   const [cnrNumber, setCnrNumber] = useState("");
   const [caseDetails, setCaseDetails] = useState<any>(null);
+  const [recentCases, setRecentCases] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
 
-  const handleSearch = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchRecentCases();
+  }, []);
+
+  const fetchRecentCases = async () => {
+    try {
+      const { data: cases, error } = await supabase
+        .from('cases')
+        .select(`
+          *,
+          hearings(hearing_date, status),
+          case_participants(*)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error('Error fetching cases:', error);
+        return;
+      }
+
+      setRecentCases(cases || []);
+    } catch (error) {
+      console.error('Error in fetchRecentCases:', error);
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cnrNumber) return;
 
-    // Simulate fetching case details
-    setCaseDetails({
-      cnr: cnrNumber,
-      title: "State v. John Doe",
-      caseType: "Criminal",
-      status: "Pending",
-      nextHearing: "2024-08-15 10:30 AM",
-      judge: "Hon. Justice Smith",
-      court: "District Court - Central",
-      petitioner: "State of Maharashtra",
-      respondent: "John Doe",
-      description: "Case involving charges of fraud and embezzlement. The matter is scheduled for final arguments.",
-    });
+    setLoading(true);
+    try {
+      const { data: cases, error } = await supabase
+        .from('cases')
+        .select(`
+          *,
+          hearings(hearing_date, status)
+        `)
+        .eq('cnr_number', cnrNumber)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error searching case:', error);
+        setCaseDetails(null);
+        return;
+      }
+
+      if (cases) {
+        setCaseDetails({
+          cnr: cases.cnr_number,
+          title: cases.title,
+          caseType: cases.case_type,
+          status: cases.status,
+          nextHearing: cases.hearings?.[0]?.hearing_date ? 
+            new Date(cases.hearings[0].hearing_date).toLocaleString() : 'Not scheduled',
+          petitioner: cases.petitioner,
+          respondent: cases.respondent,
+          description: cases.description,
+          court: cases.court_name
+        });
+      } else {
+        setCaseDetails(null);
+        alert("No case found with this CNR number");
+      }
+    } catch (error) {
+      console.error('Error in handleSearch:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVirtualHearing = () => {
     navigate("/virtual-hearing");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  const handleQuickAction = (action: string) => {
+    // Add navigation or functionality for each action
+    switch (action) {
+      case 'file-documents':
+        alert('File Documents feature - Coming soon!');
+        break;
+      case 'schedule-hearing':
+        alert('Schedule Hearing feature - Coming soon!');
+        break;
+      case 'client-management':
+        alert('Client Management feature - Coming soon!');
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleCaseClick = (caseItem: any) => {
+    setCnrNumber(caseItem.cnr_number);
+    setCaseDetails({
+      cnr: caseItem.cnr_number,
+      title: caseItem.title,
+      caseType: caseItem.case_type,
+      status: caseItem.status,
+      nextHearing: caseItem.hearings?.[0]?.hearing_date ? 
+        new Date(caseItem.hearings[0].hearing_date).toLocaleString() : 'Not scheduled',
+      petitioner: caseItem.petitioner,
+      respondent: caseItem.respondent,
+      description: caseItem.description,
+      court: caseItem.court_name
+    });
   };
 
   return (
@@ -47,9 +143,16 @@ export default function LawyerDashboard() {
                 <p className="text-primary-foreground/80">Legal Communication Platform</p>
               </div>
             </div>
-            <Button variant="outline" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
-              Profile
-            </Button>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -81,9 +184,13 @@ export default function LawyerDashboard() {
                         required
                       />
                     </div>
-                    <Button type="submit" className="mt-6 bg-gradient-legal">
+                    <Button 
+                      type="submit" 
+                      className="mt-6 bg-gradient-legal"
+                      disabled={loading}
+                    >
                       <Search className="h-4 w-4 mr-2" />
-                      Search
+                      {loading ? 'Searching...' : 'Search'}
                     </Button>
                   </div>
                 </form>
@@ -145,15 +252,27 @@ export default function LawyerDashboard() {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start hover:bg-secondary"
+                  onClick={() => handleQuickAction('file-documents')}
+                >
                   <FileText className="h-4 w-4 mr-2" />
                   File Documents
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start hover:bg-secondary"
+                  onClick={() => handleQuickAction('schedule-hearing')}
+                >
                   <Calendar className="h-4 w-4 mr-2" />
                   Schedule Hearing
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start hover:bg-secondary"
+                  onClick={() => handleQuickAction('client-management')}
+                >
                   <Users className="h-4 w-4 mr-2" />
                   Client Management
                 </Button>
@@ -166,14 +285,32 @@ export default function LawyerDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="p-3 border rounded-lg">
-                    <div className="font-medium text-sm">Civil Appeal 123/2024</div>
-                    <div className="text-xs text-muted-foreground">Next: Aug 20, 2024</div>
-                  </div>
-                  <div className="p-3 border rounded-lg">
-                    <div className="font-medium text-sm">Criminal Case 456/2024</div>
-                    <div className="text-xs text-muted-foreground">Next: Aug 22, 2024</div>
-                  </div>
+                  {recentCases.length > 0 ? (
+                    recentCases.map((caseItem) => (
+                      <div 
+                        key={caseItem.id}
+                        className="p-3 border rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors"
+                        onClick={() => handleCaseClick(caseItem)}
+                      >
+                        <div className="font-medium text-sm">{caseItem.title}</div>
+                        <div className="text-xs text-muted-foreground">
+                          CNR: {caseItem.cnr_number}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Status: {caseItem.status}
+                        </div>
+                        {caseItem.hearings?.[0] && (
+                          <div className="text-xs text-muted-foreground">
+                            Next: {new Date(caseItem.hearings[0].hearing_date).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground text-center py-4">
+                      No recent cases found
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
