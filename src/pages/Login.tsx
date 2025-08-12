@@ -7,6 +7,7 @@ import { FingerprintInput } from "@/components/ui/fingerprint-input";
 import { Scale, LogIn } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [fingerprintVerified, setFingerprintVerified] = useState(false);
@@ -29,8 +30,28 @@ export default function Login() {
   }, [user, navigate]);
 
   const fetchUserProfile = async () => {
-    // For now, default to lawyer dashboard - this will be enhanced with role checking
-    navigate("/lawyer-dashboard");
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      // Redirect based on user type
+      if (profile.role === 'judge') {
+        navigate("/judge-dashboard");
+      } else {
+        navigate("/lawyer-dashboard");
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      navigate("/lawyer-dashboard"); // fallback
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
