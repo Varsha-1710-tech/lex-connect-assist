@@ -14,7 +14,211 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      case_participants: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          lawyer_id: string
+          party_type: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          lawyer_id: string
+          party_type: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          lawyer_id?: string
+          party_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_participants_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_participants_lawyer_id_fkey"
+            columns: ["lawyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cases: {
+        Row: {
+          case_type: Database["public"]["Enums"]["case_type"]
+          cnr_number: string
+          court_name: string
+          created_at: string
+          description: string | null
+          id: string
+          judge_id: string | null
+          petitioner: string
+          respondent: string
+          status: Database["public"]["Enums"]["case_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          case_type: Database["public"]["Enums"]["case_type"]
+          cnr_number: string
+          court_name: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          judge_id?: string | null
+          petitioner: string
+          respondent: string
+          status?: Database["public"]["Enums"]["case_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          case_type?: Database["public"]["Enums"]["case_type"]
+          cnr_number?: string
+          court_name?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          judge_id?: string | null
+          petitioner?: string
+          respondent?: string
+          status?: Database["public"]["Enums"]["case_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cases_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communications: {
+        Row: {
+          case_id: string
+          client_contact: string | null
+          id: string
+          lawyer_contact: string | null
+          message: string | null
+          recipient_party: string
+          sender_id: string
+          sent_at: string
+        }
+        Insert: {
+          case_id: string
+          client_contact?: string | null
+          id?: string
+          lawyer_contact?: string | null
+          message?: string | null
+          recipient_party: string
+          sender_id: string
+          sent_at?: string
+        }
+        Update: {
+          case_id?: string
+          client_contact?: string | null
+          id?: string
+          lawyer_contact?: string | null
+          message?: string | null
+          recipient_party?: string
+          sender_id?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communications_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communications_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hearings: {
+        Row: {
+          case_id: string
+          created_at: string
+          hearing_date: string
+          id: string
+          status: string | null
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          hearing_date: string
+          id?: string
+          status?: string | null
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          hearing_date?: string
+          id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hearings_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          court_id: string | null
+          created_at: string
+          enrollment_number: string | null
+          full_name: string
+          id: string
+          updated_at: string
+          user_id: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          court_id?: string | null
+          created_at?: string
+          enrollment_number?: string | null
+          full_name: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          court_id?: string | null
+          created_at?: string
+          enrollment_number?: string | null
+          full_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +227,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      case_status: "pending" | "active" | "closed" | "postponed"
+      case_type:
+        | "criminal"
+        | "civil"
+        | "family"
+        | "commercial"
+        | "constitutional"
+      user_type: "lawyer" | "judge"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +361,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      case_status: ["pending", "active", "closed", "postponed"],
+      case_type: [
+        "criminal",
+        "civil",
+        "family",
+        "commercial",
+        "constitutional",
+      ],
+      user_type: ["lawyer", "judge"],
+    },
   },
 } as const
