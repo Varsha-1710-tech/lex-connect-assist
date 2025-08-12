@@ -35,10 +35,19 @@ export default function Login() {
         .from('profiles')
         .select('user_type')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
+        // Fallback to lawyer dashboard if profile fetch fails
+        navigate("/lawyer-dashboard");
+        return;
+      }
+
+      if (!profile) {
+        // No profile found, redirect to lawyer dashboard as fallback
+        console.warn('No profile found for user, redirecting to lawyer dashboard');
+        navigate("/lawyer-dashboard");
         return;
       }
 
