@@ -1,84 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Scale, Gavel, ArrowRight } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 export default function SignUp() {
   const [userType, setUserType] = useState<"lawyer" | "judge">("lawyer");
-  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
     enrollmentNumber: "",
     courtId: "",
     password: "",
     confirmPassword: "",
   });
-  
-  const { signUp, user } = useAuth();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) {
-      // Redirect based on user type after profile is created
-      checkUserProfileAndRedirect();
-    }
-  }, [user, navigate]);
-
-  const checkUserProfileAndRedirect = async () => {
-    if (!user) return;
-    
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profile) {
-        if (profile.role === 'judge') {
-          navigate('/judge-dashboard');
-        } else {
-          navigate('/lawyer-dashboard');
-        }
-      }
-    } catch (error) {
-      console.error('Error checking profile:', error);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match");
-      return;
-    }
-
-    setLoading(true);
-    
-    const metadata = {
-      first_name: formData.firstName,
-      last_name: formData.lastName,
-      role: userType,
-      enrollment_number: userType === 'lawyer' ? formData.enrollmentNumber : undefined,
-      court_id: userType === 'judge' ? formData.courtId : undefined,
-    };
-
-    const { error } = await signUp(formData.email, formData.password, metadata);
-    
-    if (!error) {
-      // Redirect will happen automatically after email confirmation
-    }
-    
-    setLoading(false);
+    // Handle form submission
+    console.log("Sign up data:", { ...formData, userType });
   };
 
   return (
@@ -116,27 +59,15 @@ export default function SignUp() {
           </RadioGroup>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  placeholder="First name"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  placeholder="Last name"
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Enter your full name"
+                required
+              />
             </div>
 
             <div className="space-y-2">
@@ -199,8 +130,8 @@ export default function SignUp() {
               />
             </div>
 
-            <Button type="submit" className="w-full bg-gradient-legal" disabled={loading}>
-              {loading ? "Creating Account..." : "Create Account"}
+            <Button type="submit" className="w-full bg-gradient-legal">
+              Create Account
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
