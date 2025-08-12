@@ -7,7 +7,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Scale, Gavel, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 
 export default function SignUp() {
   const [userType, setUserType] = useState<"lawyer" | "judge">("lawyer");
@@ -27,32 +26,9 @@ export default function SignUp() {
 
   useEffect(() => {
     if (user) {
-      // Redirect based on user type after profile is created
-      checkUserProfileAndRedirect();
+      navigate('/lawyer-dashboard');
     }
   }, [user, navigate]);
-
-  const checkUserProfileAndRedirect = async () => {
-    if (!user) return;
-    
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profile) {
-        if (profile.user_type === 'judge') {
-          navigate('/judge-dashboard');
-        } else {
-          navigate('/lawyer-dashboard');
-        }
-      }
-    } catch (error) {
-      console.error('Error checking profile:', error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
